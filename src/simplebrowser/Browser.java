@@ -5,9 +5,15 @@
  */
 package simplebrowser;
 
+import static com.sun.corba.se.spi.presentation.rmi.StubAdapter.request;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
+
 /**
  *
- * @author Guest
+ * @author Octaviano
  */
 public class Browser extends javax.swing.JFrame {
 
@@ -16,6 +22,7 @@ public class Browser extends javax.swing.JFrame {
      */
     public Browser() {
         initComponents();
+        jTextArea1.setEditable(false);
     }
 
     /**
@@ -133,6 +140,9 @@ public class Browser extends javax.swing.JFrame {
             java.util.logging.Logger.getLogger(Browser.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
@@ -143,9 +153,45 @@ public class Browser extends javax.swing.JFrame {
     }
 
     public void searchItem(String url) {
+        new Execute(url).start();
 
-        //TODO HERE
     }
+
+    class Execute extends Thread {
+
+        String url;
+
+        public Execute(String url) {
+            this.url = url;
+            jTextArea1.setText("");
+        }
+
+        @Override
+        public void run() {
+            //try-with-resource.
+            try (Socket socket = new Socket(url, 80);
+                    // connection to the server.
+                    PrintWriter request = new PrintWriter(socket.getOutputStream());
+                    // response to the server.
+                    BufferedReader listen = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+                // protocol that should be pass to the server.
+                request.println("GET / HTTP/1.1");
+                request.println("Host: " + url);
+                request.println();
+                request.flush();
+                String line = "";
+                while ((line = listen.readLine()) != null) {
+                    jTextArea1.append(line + "\n");
+                }
+
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+
+        }
+
+    }
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonSearch;
